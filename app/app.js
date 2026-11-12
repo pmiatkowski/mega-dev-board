@@ -13,10 +13,16 @@ const panel = document.querySelector('[data-testid="incident-panel"]');
 const ackedIds = new Set();
 
 // Product, 2026-11-12: Ack leaves the row. A row opens its incident panel;
-// the panel names the incident it holds, and Ack lives there. The ack always
-// names the incident on-call is looking at, even when the list shifts.
+// the panel names the incident it holds, and Ack lives there.
 let openId = null;
 let openSnapshot = null;
+
+// The list is stable DOM: one row per deal (incident id @ openedAt), inserted
+// newest-first and never removed or moved while the board is open. The feed's
+// window rolls on, but on-call's board does not take rows off — a deal that
+// re-opens an incident lands as a new row on top; the older deal stays below
+// as history. Nothing is ever pulled out from under a reading pair of eyes.
+const rowByKey = new Map(); // key → <li>
 
 function esc(value) {
   return String(value).replace(/[&<>"']/g, (c) => (
@@ -38,24 +44,46 @@ function localTime(iso) {
   }).format(d);
 }
 
-function rowHtml(i) {
-  const mark = ackedIds.has(i.id)
+function markHtml(id) {
+  return ackedIds.has(id)
     ? '<span data-testid="acked" class="acked">acked</span>'
     : '<span class="ackslot"></span>';
-  const opened = openId === i.id ? ' opened' : '';
-  return `<li data-testid="incident-row" data-id="${esc(i.id)}" class="row ${esc(i.severity)}${opened}" title="open incident panel">
+}
+
+function buildRow(i) {
+  const li = document.createElement('li');
+  li.dataset.testid = 'incident-row';
+  li.dataset.id = i.id;
+  li.dataset.key = `${i.id}@${i.openedAt}`;
+  li.dataset.ts = String(Date.parse(i.openedAt));
+  li.className = `row ${i.severity}`;
+  li.title = 'open incident panel';
+  li.innerHTML = `
         <span class="id">${esc(i.id)}</span>
         <span class="sev">${esc(i.severity)}</span>
         <span class="what">${esc(i.service)} · ${esc(i.region)} · ${esc(i.summary)}</span>
         <time datetime="${esc(i.openedAt)}">${esc(localTime(i.openedAt))}</time>
-        ${mark}
-      </li>`;
+        ${markHtml(i.id)}`;
+  return li;
 }
 
-// R1 — the API answers newest first; new incidents land at the top on refresh.
+function insertRow(i) {
+  const li = buildRow(i);
+  let ref = list.firstElementChild;
+  while (ref && Number(ref.dataset.ts) >= Number(li.dataset.ts)) ref = ref.nextElementSibling;
+  list.insertBefore(li, ref); // pure insertion: no row is ever moved or removed
+  rowByKey.set(li.dataset.key, li);
+  if (openId === i.id) li.classList.add('opened');
+}
+
+// R1 — every deal lands live at the top, newest first; rows already on the
+// board stay exactly where they are.
 function render(incidents) {
-  list.innerHTML = incidents.map(rowHtml).join('');
-  empty.hidden = incidents.length > 0;
+  empty.hidden = !(incidents.length === 0 && list.childElementCount === 0);
+  for (const i of incidents) {
+    const key = `${i.id}@${i.openedAt}`;
+    if (!rowByKey.has(key)) insertRow(i);
+  }
 }
 
 let lastPanelKey = null;
@@ -126,18 +154,19 @@ list.addEventListener('click', (e) => {
   const id = row.dataset.id;
   openId = openId === id ? null : id;
   openSnapshot = openId ? (lastIncidents.find((i) => i.id === openId) ?? openSnapshot) : null;
-  render(lastIncidents); // re-marks the opened row
+  for (const li of list.children) li.classList.toggle('opened', openId !== null && li.dataset.id === openId);
   renderPanel();
 });
 
 // Ack lives in the panel (product, 2026-11-12): api.ack(id) for the incident
-// the panel names, then the mark lands in panel and row (R2).
+// the panel names, then the mark lands in the panel and in every row of that
+// incident (R2).
 panel.addEventListener('click', async (e) => {
   if (e.target.closest('.panel-close')) {
     openId = null;
     openSnapshot = null;
     renderPanel();
-    for (const row of list.querySelectorAll('.opened')) row.classList.remove('opened');
+    for (const li of list.children) li.classList.remove('opened');
     return;
   }
   const btn = e.target.closest('[data-testid="panel-ack"]');
@@ -147,17 +176,13 @@ panel.addEventListener('click', async (e) => {
   try {
     const reply = await ack(id);
     ackedIds.add(reply.id);
-    renderPanel(); // panel now shows the acked mark
-    const row = list.querySelector(`[data-testid="incident-row"][data-id="${CSS.escape(reply.id)}"]`);
-    if (row) {
-      const slot = row.querySelector('.ackslot');
-      if (slot) {
-        const mark = document.createElement('span');
-        mark.dataset.testid = 'acked';
-        mark.className = 'acked';
-        mark.textContent = 'acked';
-        slot.replaceWith(mark);
-      }
+    renderPanel();
+    for (const li of list.querySelectorAll(`[data-id="${CSS.escape(reply.id)}"] .ackslot`)) {
+      const mark = document.createElement('span');
+      mark.dataset.testid = 'acked';
+      mark.className = 'acked';
+      mark.textContent = 'acked';
+      li.replaceWith(mark);
     }
   } catch (err) {
     btn.disabled = false;

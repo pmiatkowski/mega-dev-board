@@ -43,11 +43,32 @@ t0: {
   await berlin.getByTestId('incident-row').first().waitFor({ timeout: 10000 });
   const rows = await berlin.getByTestId('incident-row').count();
   ok('R1 rows render', rows > 0, `${rows} rows`);
-  const times = await berlin.locator('[data-testid="incident-row"] time').evaluateAll(
-    (els) => els.map((el) => el.getAttribute('datetime')),
+  const times = await berlin.locator('[data-testid="incident-row"]').evaluateAll(
+    (els) => els.map((el) => el.dataset.ts),
   );
-  const sorted = [...times].sort((a, b) => b.localeCompare(a));
+  const sorted = [...times].map(Number).sort((a, b) => b - a).map(String);
   ok('R1 newest first', JSON.stringify(times) === JSON.stringify(sorted));
+}
+
+// DOM stability (course check j): rows are never removed or moved — new deals
+// are inserted in place, refreshes only add.
+domStability: {
+  await berlin.evaluate(() => {
+    window.__rowsRemoved = 0;
+    new MutationObserver((records) => {
+      for (const r of records) for (const n of r.removedNodes) {
+        if (n.nodeType === 1 && (n.matches?.('[data-testid="incident-row"]') || n.querySelector?.('[data-testid="incident-row"]'))) {
+          window.__rowsRemoved += n.matches?.('[data-testid="incident-row"]') ? 1 : n.querySelectorAll('[data-testid="incident-row"]').length;
+        }
+      }
+    }).observe(document, { childList: true, subtree: true });
+  });
+  const before = await berlin.getByTestId('incident-row').count();
+  await berlin.waitForTimeout(9000); // ≥4 refresh passes
+  const removed = await berlin.evaluate(() => window.__rowsRemoved);
+  const after = await berlin.getByTestId('incident-row').count();
+  ok('R4/j no rows removed across refreshes', removed === 0, `${removed} removals; rows ${before}→${after}`);
+  ok('R4/j row count never drops', after >= before, `${before}→${after}`);
 }
 
 // R5: Berlin sees local time, day before month; UTC kept in datetime.
@@ -119,7 +140,7 @@ r2: {
 
   await auk.waitForTimeout(5000); // ≥2 refresh passes
   const rowAcked = await auk.locator(`[data-testid="incident-row"][data-id="${id}"] [data-testid="acked"]`).count();
-  ok('R2 acked survives refresh in row', rowAcked === 1);
+  ok('R2 acked survives refresh in row', rowAcked >= 1, `${rowAcked} marked rows`);
   const panelStillNames = await panel.getAttribute('data-id');
   const panelAcked = await panel.getByTestId('acked').count();
   ok('R2 panel keeps naming it + stays acked', panelStillNames === id && panelAcked === 1);
