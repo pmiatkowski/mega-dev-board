@@ -10,7 +10,8 @@ import { dirname } from 'node:path';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const base = process.argv[2] ?? 'http://127.0.0.1:3210';
-const sha = execFileSync('git', ['-C', root, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+// same rule the deploy stamps: the last commit that changed the shipped app
+const sha = execFileSync('git', ['-C', root, 'log', '-1', '--format=%H', '--', 'app/'], { encoding: 'utf8' }).trim();
 
 const results = [];
 const ok = (name, pass, detail = '') => {
@@ -96,18 +97,36 @@ r4: {
   ok('R4 no reload', navs.length === 0, `${navs.length} navigations`);
 }
 
-// R2: ack a row — mark appears, receipt logged, state survives a refresh cycle.
+// R2 (product 2026-11-12): row opens the panel; Ack lives in the panel.
 r2: {
   const row = auk.getByTestId('incident-row').first();
   const id = await row.getAttribute('data-id');
-  await row.getByTestId('ack').click();
-  await row.getByTestId('acked').waitFor({ timeout: 10000 });
-  ok('R2 acked mark appears', true, id);
+  const rowAckButtons = await auk.getByTestId('ack').count();
+  ok('R2 rows carry no Ack button', rowAckButtons === 0, `${rowAckButtons} found`);
+
+  await row.click();
+  const panel = auk.getByTestId('incident-panel');
+  await panel.waitFor({ state: 'visible', timeout: 5000 });
+  ok('R2 row opens panel', true);
+  ok('R2 panel names the incident', (await panel.getAttribute('data-id')) === id
+    && (await panel.innerText()).includes(id), `data-id=${await panel.getAttribute('data-id')}`);
+
+  await panel.getByTestId('panel-ack').click();
+  await panel.getByTestId('acked').waitFor({ timeout: 10000 });
+  ok('R2 panel acks and marks', true, id);
   const ackLine = consoleLines.find((l) => l.startsWith('[auckland] ack '));
   ok('R2 receipt logged', !!ackLine, ackLine?.slice(0, 120));
+
   await auk.waitForTimeout(5000); // ≥2 refresh passes
-  const stillAcked = await auk.locator(`[data-testid="incident-row"][data-id="${id}"] [data-testid="acked"]`).count();
-  ok('R2 acked survives refresh', stillAcked === 1);
+  const rowAcked = await auk.locator(`[data-testid="incident-row"][data-id="${id}"] [data-testid="acked"]`).count();
+  ok('R2 acked survives refresh in row', rowAcked === 1);
+  const panelStillNames = await panel.getAttribute('data-id');
+  const panelAcked = await panel.getByTestId('acked').count();
+  ok('R2 panel keeps naming it + stays acked', panelStillNames === id && panelAcked === 1);
+
+  // toggle: clicking the same row closes the panel
+  await auk.locator(`[data-testid="incident-row"][data-id="${id}"]`).click();
+  ok('R2 same row closes panel', await panel.isHidden());
 }
 
 // R6: build sha in meta + footer.
