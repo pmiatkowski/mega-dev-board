@@ -50,20 +50,22 @@ const footerSha = (await page.getByTestId('build-sha').innerText()).trim();
 note('build-sha in footer', footerSha);
 
 // watch-board: wait (up to 9 min) for a new incident at the top, no reload.
+// A person reacts at once: scan the top row a few times a second and click the
+// moment the new one lands — no waiting for the page to settle.
 let navCount = 0;
 page.on('framenavigated', (f) => { if (f === page.mainFrame()) navCount++; });
 
 const deadline = Date.now() + 9 * 60 * 1000;
 let newId = null;
+let lastMotion = 0;
 while (Date.now() < deadline) {
-  // keep the session visibly alive: a small scroll wiggle every ~20 s
-  await page.mouse.move(640, 400);
-  await page.evaluate(() => window.scrollBy(0, 40));
-  await page.waitForTimeout(500);
-  await page.evaluate(() => window.scrollBy(0, -40));
   const topId = await page.getByTestId('incident-row').first().getAttribute('data-id');
   if (topId !== firstId) { newId = topId; break; }
-  await page.waitForTimeout(20000 - 1000);
+  if (Date.now() - lastMotion > 4000) { // idle hand drift, never delays the click
+    await page.mouse.move(500 + Math.random() * 300, 300 + Math.random() * 120);
+    lastMotion = Date.now();
+  }
+  await page.waitForTimeout(250);
 }
 if (newId) {
   note('watch-board: new incident at top, no reload', `${newId} (navigations so far: ${navCount})`);
@@ -71,10 +73,12 @@ if (newId) {
   note('watch-board: no new incident within 9 min', `navigations so far: ${navCount}`);
 }
 
-// ack-incident: take the top row — the new one if it arrived.
-const row = page.getByTestId('incident-row').first();
+// ack-incident: the row that just landed — click it right away, mid-change.
 const ackId = newId ?? firstId;
-await row.getByTestId('ack').click();
+const row = page.locator(`[data-testid="incident-row"][data-id="${ackId}"]`);
+const ackBtn = row.getByTestId('ack');
+await ackBtn.hover({ timeout: 5000 }); // the hand moves to the button
+await ackBtn.click({ timeout: 5000 }); // and takes it while the board still refreshes
 await row.getByTestId('acked').waitFor({ timeout: 15000 });
 note('ack-incident: acked', ackId);
 
@@ -96,12 +100,29 @@ const newest = readdirSync(dir)
 renameSync(`${dir}/${newest.f}`, outPath);
 
 const ackLine = consoleLines.find((l) => l.startsWith('ack '));
+// server-side view of the race: how close was the ack to the incident's landing?
+let landedGapMs = null;
+let openedAtServer = null;
+try {
+  const { API, SESSION } = await import('../app/config.js');
+  const res = await fetch(`${API}/incidents?t=${SESSION}`);
+  const pageNow = await res.json();
+  const hit = pageNow.incidents.find((i) => i.id === ackId);
+  if (hit && ackLine) {
+    openedAtServer = hit.openedAt;
+    landedGapMs = new Date(ackLine.split(' ')[2]).getTime() - new Date(hit.openedAt).getTime();
+  }
+} catch (e) {
+  console.warn('could not fetch server view of the landing:', e.message);
+}
 const result = {
   url,
   startedAt: startedAt.toISOString(),
   footerSha,
   ackId,
   ackConsoleLine: ackLine ?? null,
+  openedAtServer,
+  landedGapMs,
   navCount,
   timeline,
 };
