@@ -1,52 +1,46 @@
 {
   "url": "https://pmiatkowski.github.io/mega-dev-board/",
-  "startedAt": "2026-11-12T08:50:53.362Z",
+  "startedAt": "2026-11-12T08:58:13.722Z",
   "footerSha": "071dafe831fc0aefe079d995d8c9883ec3853a63",
-  "ackId": "INC-9286",
-  "ackConsoleLine": "ack INC-9286 2026-11-12T08:51:05.680Z a1.C9CIXIQ-4--mOfFX.SgxXC5geSC-pUBZtLOucicIf07YT_mVpy-2cxF5iTa9XgUda722tKkM6RY9EE5PZ7L9VZoYz_M7YX_SCT9oSDi5XdC2VKoliJIk-nrGOeJKDNzgRSLkEBMAGCMdAncYV_cEH6tpwnEMFRCUFcfNNR9e4sUrED8KQ03nOSWEi53jryO0wrfZZeYcqoF9Pv8ESZFA",
-  "openedAtServer": null,
-  "landedGapMs": null,
-  "navCount": 0,
+  "expected": "INC-4155",
+  "gotRow": "INC-1944",
+  "raceMisfired": true,
+  "ackConsoleLine": "ack INC-1944 2026-11-12T08:58:06.564Z a1.O6GlPKmP5Ol8e7Jv.96Xx9hAQChqwPHn0K_WFjmoce8G1GGfaAUpQkxwwNaWDYSmfWDSGtwJEb8a69UeuG28EbZNt_U_y72arPs-3BuzvzbrpEn1jGS7ZCfKiA9_7QLfjuoATMciXMZ2cwBlNlsQgyxUbEP_f2S772dtFNYnTInUclIaB98PKBUtc3ugddzdrZECpBAP6WIB56c6RWYY",
   "timeline": [
     {
-      "ms": 857,
+      "ms": 802,
       "event": "open-board: page opened",
       "detail": ""
     },
     {
-      "ms": 1069,
+      "ms": 1018,
       "event": "open-board: loader gone, incidents on screen",
-      "detail": ""
-    },
-    {
-      "ms": 1074,
-      "event": "open-board: rows listed",
       "detail": "8 rows, top INC-1944"
     },
     {
-      "ms": 1075,
+      "ms": 1019,
       "event": "build-sha in footer",
       "detail": "071dafe831fc0aefe079d995d8c9883ec3853a63"
     },
     {
-      "ms": 13161,
-      "event": "watch-board: new incident at top, no reload",
-      "detail": "INC-9286 (navigations so far: 0)"
+      "ms": 1034,
+      "event": "aim: hand moves to the Ack button of",
+      "detail": "INC-4155 at (945, 157)"
     },
     {
-      "ms": 13334,
-      "event": "ack-incident: acked",
-      "detail": "INC-9286"
+      "ms": 13051,
+      "event": "shift: the list changed under the pointer —",
+      "detail": "row at aimed position is now INC-1944"
     },
     {
-      "ms": 21350,
-      "event": "ack-incident: acked mark still there after refreshes",
-      "detail": "yes"
+      "ms": 13149,
+      "event": "click: acked mark appeared on",
+      "detail": "INC-1944"
     },
     {
-      "ms": 21350,
-      "event": "watch-board: navigations total (must be 0)",
-      "detail": "0"
+      "ms": 19161,
+      "event": "the row aimed at is acked?",
+      "detail": "no — the ack went to another row"
     }
   ]
 }
