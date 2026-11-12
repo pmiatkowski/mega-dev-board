@@ -1,13 +1,15 @@
 {
   "url": "https://pmiatkowski.github.io/mega-dev-board/",
-  "startedAt": "2026-11-12T08:46:37.608Z",
+  "startedAt": "2026-11-12T08:50:53.362Z",
   "footerSha": "071dafe831fc0aefe079d995d8c9883ec3853a63",
   "ackId": "INC-9286",
-  "ackConsoleLine": "ack INC-9286 2026-11-12T08:46:57.806Z a1.Qxnc9a2BmgYoXL1N.FhocbKDdNLFc5hfVDjrJ-c60EdYxjUAZxbSJOn4PVGXpHmhcqV_jeS0Q7scDlKE_p1zglWiaJkfABJBktzqxGnv7YnJDFFLJAIVHZRl0FCXOesffhOZjJBvUD5pe663mwh2epvfguagoMT-odw-1_HDppndWTQywS3FZPZLxl8_A0faQzyMli7hHwdmYXAiilsg",
+  "ackConsoleLine": "ack INC-9286 2026-11-12T08:51:05.680Z a1.C9CIXIQ-4--mOfFX.SgxXC5geSC-pUBZtLOucicIf07YT_mVpy-2cxF5iTa9XgUda722tKkM6RY9EE5PZ7L9VZoYz_M7YX_SCT9oSDi5XdC2VKoliJIk-nrGOeJKDNzgRSLkEBMAGCMdAncYV_cEH6tpwnEMFRCUFcfNNR9e4sUrED8KQ03nOSWEi53jryO0wrfZZeYcqoF9Pv8ESZFA",
+  "openedAtServer": null,
+  "landedGapMs": null,
   "navCount": 0,
   "timeline": [
     {
-      "ms": 882,
+      "ms": 857,
       "event": "open-board: page opened",
       "detail": ""
     },
@@ -17,32 +19,32 @@
       "detail": ""
     },
     {
-      "ms": 1071,
+      "ms": 1074,
       "event": "open-board: rows listed",
       "detail": "8 rows, top INC-1944"
     },
     {
-      "ms": 1072,
+      "ms": 1075,
       "event": "build-sha in footer",
       "detail": "071dafe831fc0aefe079d995d8c9883ec3853a63"
     },
     {
-      "ms": 21105,
+      "ms": 13161,
       "event": "watch-board: new incident at top, no reload",
       "detail": "INC-9286 (navigations so far: 0)"
     },
     {
-      "ms": 21151,
+      "ms": 13334,
       "event": "ack-incident: acked",
       "detail": "INC-9286"
     },
     {
-      "ms": 29164,
+      "ms": 21350,
       "event": "ack-incident: acked mark still there after refreshes",
       "detail": "yes"
     },
     {
-      "ms": 29165,
+      "ms": 21350,
       "event": "watch-board: navigations total (must be 0)",
       "detail": "0"
     }
