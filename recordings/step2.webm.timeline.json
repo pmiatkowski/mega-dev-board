@@ -1,0 +1,50 @@
+{
+  "url": "https://pmiatkowski.github.io/mega-dev-board/",
+  "startedAt": "2026-11-12T09:18:14.343Z",
+  "footerSha": "3c2c745df41e95cc6ded150b029b52c0959535d0",
+  "targetId": "INC-9286",
+  "ackConsoleLine": "ack INC-9286 2026-11-12T09:18:05.027Z a1.HM7eU-qo0N-FSdEF.CYQxi-lHI7Ims9lLtBAas0AUT2Phs4B-mDFh-fB20Dnaq8kj7nWOaDIRvPvH10a1ZMqMGlbMZYehgSDVqTnl5gy4xcD9M5ZGCuNGHB_PHa1H8zmV2WbMcOH7TD8-pGRpD159XgBE6dUuaZgfIupXU5QFjYbYor_wKpOkIStt6xPraKFv64KJFc_3_aBXy8qNCQo",
+  "navCount": 1,
+  "timeline": [
+    {
+      "ms": 789,
+      "event": "open-board: page opened",
+      "detail": ""
+    },
+    {
+      "ms": 1008,
+      "event": "open-board: loader gone, incidents on screen",
+      "detail": "8 rows"
+    },
+    {
+      "ms": 1009,
+      "event": "build-sha in footer",
+      "detail": "3c2c745df41e95cc6ded150b029b52c0959535d0"
+    },
+    {
+      "ms": 13106,
+      "event": "watch-board: new incident at top, no reload",
+      "detail": "INC-9286 (navigations: 1)"
+    },
+    {
+      "ms": 13141,
+      "event": "panel opens, names the incident",
+      "detail": "INC-9286 — shown as ✕"
+    },
+    {
+      "ms": 13248,
+      "event": "ack-incident: panel acks it",
+      "detail": "INC-9286"
+    },
+    {
+      "ms": 21256,
+      "event": "mark in row + panel still names it",
+      "detail": "rowAcked=true, panel=INC-9286"
+    },
+    {
+      "ms": 21257,
+      "event": "watch-board: navigations total (must be 0)",
+      "detail": "1"
+    }
+  ]
+}
