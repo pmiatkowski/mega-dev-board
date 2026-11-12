@@ -25,6 +25,9 @@ jobs:
           node-version: 22
       - name: Stamp the build sha (R6)
         run: node scripts/stamp-build.mjs "$GITHUB_SHA"
+      - name: Include evidence recordings (served as video/webm)
+        run: |
+          if [ -d recordings ]; then cp -r recordings dist/recordings; fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
