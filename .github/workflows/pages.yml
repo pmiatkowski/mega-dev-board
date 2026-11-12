@@ -24,7 +24,11 @@ jobs:
         with:
           node-version: 22
       - name: Stamp the build sha (R6)
-        run: node scripts/stamp-build.mjs "$GITHUB_SHA"
+        run: |
+          # the build is the app; name the last commit that changed it, so
+          # evidence recordings pushed after a take don't move the page's sha
+          APP_SHA="$(git log -1 --format=%H -- app/)"
+          node scripts/stamp-build.mjs "$APP_SHA"
       - name: Include evidence recordings (served as video/webm)
         run: |
           if [ -d recordings ]; then cp -r recordings dist/recordings; fi
